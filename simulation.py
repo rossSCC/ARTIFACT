@@ -36,6 +36,7 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
     return micro, recent_rain
 
 def plot_analysis(df: pd.DataFrame, rain_amount: float):
+    
     plt.style.use('dark_background')
     fig, ax1 = plt.subplots(figsize=(10,5))
     ax1.plot(df['Time'], df['Risk_Score'], linewidth=2, label='Risk Score')
@@ -51,10 +52,14 @@ def plot_analysis(df: pd.DataFrame, rain_amount: float):
     ax1.axhline(70, linestyle=':', label='Critical Threshold')
     plt.title(f"Forest Sentinel: Risk Analysis (Recent rain: {rain_amount} mm)")
     fig.tight_layout()
-    
-    print("Display not supported – saving graph as image instead.")
-    plt.savefig("risk_analysis.png", dpi=150)
-    print("Saved as risk_analysis.png")
+    plt.legend()
+
+    try:
+        plt.show()
+    finally:
+        print("Display not supported – saving graph as image instead.")
+        plt.savefig("risk_analysis.png", dpi=150)
+        print("Saved as risk_analysis.png")
 
 
 def run_what_if(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
@@ -68,9 +73,13 @@ def run_what_if(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
     plt.xlabel('Time (s)')
     plt.ylabel('Risk')
     plt.legend()
-    print("Display not supported – saving graph as image instead.")
-    plt.savefig("risk_whatif.png", dpi=150)
-    print("Saved as risk_analysis.png")
+
+    try:
+        plt.show()
+    finally:
+        print("Display not supported – saving graph as image instead.")
+        plt.savefig("risk_whatif.png", dpi=150)
+        print("Saved as risk_analysis.png")
 
 # Minimal placeholders for the reporting path used by main.py
 def calculate_fire_risk_weather(weather_df: pd.DataFrame):

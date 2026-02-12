@@ -57,7 +57,7 @@ def main_menu():
         if choice == '1':
             df = data_manager.get_microbit_data()
             if not df.empty:
-                print(df.head())
+                print(df)
             input("\nPress Enter to return to menu...")
 
         elif choice == '2':
