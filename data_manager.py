@@ -27,12 +27,15 @@ def get_weather_data() -> pd.DataFrame:
     try:
         with urllib.request.urlopen(MET_EIREANN_URL, timeout=8) as resp:
             raw = resp.read().decode('utf-8', errors='replace')
-        df = pd.read_csv(io.StringIO(raw), skiprows=10, skipinitialspace=True)
+            print("\n" + raw[0:87])
+        df = pd.read_csv(io.StringIO(raw), skiprows=9, skipinitialspace=True)
         df.columns = df.columns.str.strip().str.lower()
         if 'rain' in df.columns:
             df['rain'] = pd.to_numeric(df['rain'], errors='coerce').fillna(0)
         print(p_colour(">> [SUCCESS] LIVE RAINFALL DATA RECEIVED.", '32'))
+        print(p_colour(">> Last date: ", '33') + df.iloc[-1]["date"])
         return df
+    
     except Exception as err:
         print(p_colour(f">> [WARNING] CONNECTION FAILED: {err}", '33'))
         print(p_colour(">> [SYSTEM] LOADING LOCAL BACKUP...", '31'))

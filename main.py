@@ -25,7 +25,7 @@ def print_header():
 
 def main_menu():
     while True:
-        print("\n" + "="*40)
+        print("\n\n" + "="*40)
         print(p_colour("       MAIN MENU", '1;37'))  # bold white
         print("="*40)
         print(p_colour("[1]", '36'), "Load & View Micro:bit Data")
@@ -55,7 +55,20 @@ def main_menu():
                 input("Missing micro:bit data. Press Enter...")
                 continue
             processed, rain = simulation.analyse_risk(micro, weather)
-            simulation.plot_analysis(processed, rain)
+
+            print("\n\n" + "="*40)
+            print(p_colour("       VIEW RISK LEVEL", '1;37'))  # bold white
+            print("="*40)
+            print(p_colour("[1]", '36'), "Load & View Data Numericaly")
+            print(p_colour("[2]", '36'), "Process Data Graphically")
+            choice = input(p_colour("\n>> ENTER OPTION: ", '33;'))  # yellow
+            if choice == '1':
+                print("\n" + processed)
+                print(f"Recent Rainfall: {rain} mm")
+            elif choice == '2':
+                simulation.plot_analysis(processed, rain)
+            else:
+                print(">> Invalid Command.")
             input("\nPress Enter to return to menu...")
             os.system("clear||cls")
 
