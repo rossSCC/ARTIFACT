@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import time
 import data_manager
@@ -26,6 +25,7 @@ def print_header():
 ⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⠀⠀\n""", '1;31'))
 
 def main_menu():
+    global data
     while True:
         print("\n\n" + "="*40)
         print(p_colour("       MAIN MENU", '1;37'))  # bold white
@@ -92,7 +92,7 @@ def main_menu():
             os.system("clear||cls")
 
         elif choice == '4':
-            if (data is not None and not data.empty):
+            if data is not None and not data.empty:
                 micro = data
             else:
                 print(p_colour(">> [ERROR] NO DATA AVAILABLE.", '31'))

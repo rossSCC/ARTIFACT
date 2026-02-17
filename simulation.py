@@ -232,6 +232,9 @@ def run_what_if(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
         print("Temperature reduction: 45%\n Light reduction: 68%\n  Rain increase: 84%\n")
         plot_analysis(df, rain, "Prolonged Rain Scenario", "prolonged_rain.png", "\nT -45%, L -68%, R +84%")
 
+    else:
+        print(">> Invalid Command.")
+
 def load_test():
     return(p_colour(f">> SIMULATION MODULE CONNECTED...", '36'))
     
