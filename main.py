@@ -51,15 +51,13 @@ def main_menu():
             os.system("clear||cls")
 
         elif choice == '2':
-            if (data is not None and not data.empty):
-                processed = data
-            else:
-                weather = data_manager.get_weather_data()
-                micro = data_manager.get_microbit_data()
-                if micro.empty:
-                    input("Missing micro:bit data. Press Enter...")
-                    continue
-                processed, rain = simulation.analyse_risk(micro, weather)
+            weather = data_manager.get_weather_data()
+            micro = data_manager.get_microbit_data()
+            if micro.empty:
+                input("Missing micro:bit data. Press Enter...")
+                continue
+            processed, rain = simulation.analyse_risk(micro, weather)
+            data = processed
 
             print("\n\n" + "="*40)
             print(p_colour("       VIEW RISK LEVEL", '1;37'))  # bold white
@@ -96,14 +94,56 @@ def main_menu():
         elif choice == '4':
             if (data is not None and not data.empty):
                 micro = data
-                # Rest of the code for option 4 would go here
-                print(p_colour(">> DATA LOADED SUCCESSFULLY.", '32'))
             else:
                 print(p_colour(">> [ERROR] NO DATA AVAILABLE.", '31'))
                 print(p_colour(">> Please run simulation first. (Option 2)", '31'))
-            
+                input("\nPress Enter to return to menu...")
+                os.system("clear||cls")
+                continue
+
+            distribution, max_streak, current, trend, volatility, latest_ma, corr_temp, corr_light, critical_days = data_manager.analytics(micro)
+
+            print("\n\n" + "="*40)
+            print(p_colour("       DATA ANALYSIS ", '1;37'))  # bold white
+            print("="*40 + "\n")
+            print(p_colour(">> RISK LEVEL DISTRIBUTION", '32'))
+            print("Catagory   : Count")
+            total = len(micro)
+            # Define levels and their colours
+            levels = [
+                ("Extreme", '31'),
+                ("High", '33'),
+                ("Moderate", '33'),
+                ("Low", '32'),
+                ("Negligible", '36')
+            ]
+            # Loop through levels
+            for name, color in levels:
+                count = distribution.get(name, 0)
+                percent = (count / total) * 100 if total > 0 else 0
+                bar_length = int((percent / 100) * 20)
+                bar = '█' * bar_length + '-' * (20 - bar_length)
+                print(p_colour(f"{name:<10} : {count:>3}  ({percent:5.1f}%) {bar}", color))
+
+            print("\n" + p_colour(">> RISK STREAK", '32'))
+            print(f"Current High Risk Streak: {current} days")
+            print(f"Longest High Risk Streak: {max_streak} days")
+            print(p_colour(f"Total High Risk Days (>70%): {critical_days} days", '1;31'))
+
+            print("\n" + p_colour(">> RISK TREND", '32'))
+            print(f"Overall Risk Trend: {trend}")
+            print(f"3-Day Moving Average: {latest_ma:.2f}%")
+            print(f"Risk Volatility (Std Dev): {volatility:.2f}%")
+
+            print("\n" + p_colour(">> CORRELATIONS", '32'))
+            print("How strongly risk relates to other factors")
+            print("Measured on a scale of -1 to 1 (-1 = no correlation, 1 = perfectly correlated)")
+            print(f"Temperature Correlation: {corr_temp:.2f}")
+            print(f"Light Level Correlation: {corr_light:.2f}")
+
             input("\nPress Enter to return to menu...")
             os.system("clear||cls")
+
 
         elif choice.upper() == 'X':
             print(p_colour(">> SHUTTING DOWN SYSTEM...", '31'))

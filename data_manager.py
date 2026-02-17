@@ -12,7 +12,7 @@ import os
 STATION_ID = "9820"
 MET_EIREANN_URL = f"https://cli.fusio.net/cli/climate_data/webdata/dly{STATION_ID}.csv"
 BACKUP_FILE = "backup_weather.csv"
-MICROBIT_FILE = "my_data.csv"
+BIT_FILE = "my_data.csv"
 
 def p_colour(text, code):
     return f"\033[{code}m{text}\033[0m"
@@ -54,13 +54,13 @@ def get_weather_data() -> pd.DataFrame:
             return pd.DataFrame()
 
 def get_microbit_data() -> pd.DataFrame:
-    #Reads the local micro:bit CSV. Expects a header line followed by Time,Light,Temp columns
-    print(p_colour(f">> READING LOCAL DATA ({MICROBIT_FILE})...", '36'))
-    if not os.path.exists(MICROBIT_FILE):
-        print(p_colour(f">> [ERROR] '{MICROBIT_FILE}' NOT FOUND.", '31'))
+    #Reads the local :bit CSV. Expects a header line followed by Time,Light,Temp columns
+    print(p_colour(f">> READING LOCAL DATA ({BIT_FILE})...", '36'))
+    if not os.path.exists(BIT_FILE):
+        print(p_colour(f">> [ERROR] '{BIT_FILE}' NOT FOUND.", '31'))
         return pd.DataFrame()
     try:
-        df = pd.read_csv(MICROBIT_FILE, skip_blank_lines=True)
+        df = pd.read_csv(BIT_FILE, skip_blank_lines=True)
         # Normalize column names and ensure numeric types
         df.columns = df.columns.str.strip().str.capitalize()
         # Accept various column name possibilities
@@ -115,9 +115,42 @@ def classify_risk(r):
     elif r >= 20:
         return "Low"
     else:
-        return "Minimal"
+        return "Negligible"
 
+def analytics(df):
+    df['Risk_Level'] = df['Risk_Score'].apply(classify_risk)
+    distribution = df['Risk_Level'].value_counts()
     
+    max_streak = 0
+    current = 0
+    critical_days = 0
+    for r in df['Risk_Score']:
+        if r >= 70:
+            current += 1
+            max_streak = max(max_streak, current)
+            critical_days += 1
+        else:
+            current = 0
+
+    if len(df) >= 2:
+        if df['Risk_Score'].iloc[-1] > df['Risk_Score'].iloc[0]:
+            trend = "Increasing"
+        elif df['Risk_Score'].iloc[-1] < df['Risk_Score'].iloc[0]:
+            trend = "Decreasing"
+        else:
+            trend = "Stable"
+    else:
+        trend = "Insufficient Data"
+    df['Risk_MA_3'] = df['Risk_Score'].rolling(window=3).mean()
+    latest_ma = df['Risk_MA_3'].iloc[-1]
+
+    volatility = df['Risk_Score'].std()
+
+    corr_temp = df['Temp'].corr(df['Risk_Score'])
+    corr_light = df['Light'].corr(df['Risk_Score'])
+
+    return distribution, max_streak, current, trend, volatility, latest_ma, corr_temp, corr_light, critical_days
+
 
 def load_test():
     return(p_colour(f">> DATA MANAGER MODULE CONNECTED...", '36'))
