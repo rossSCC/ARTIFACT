@@ -5,6 +5,8 @@ import data_manager
 import simulation
 import os
 
+data = None
+
 def p_colour(text, code):
     return f"\033[{code}m{text}\033[0m"
 
@@ -49,12 +51,15 @@ def main_menu():
             os.system("clear||cls")
 
         elif choice == '2':
-            weather = data_manager.get_weather_data()
-            micro = data_manager.get_microbit_data()
-            if micro.empty:
-                input("Missing micro:bit data. Press Enter...")
-                continue
-            global processed, rain = simulation.analyse_risk(micro, weather)
+            if (data is not None and not data.empty):
+                processed = data
+            else:
+                weather = data_manager.get_weather_data()
+                micro = data_manager.get_microbit_data()
+                if micro.empty:
+                    input("Missing micro:bit data. Press Enter...")
+                    continue
+                processed, rain = simulation.analyse_risk(micro, weather)
 
             print("\n\n" + "="*40)
             print(p_colour("       VIEW RISK LEVEL", '1;37'))  # bold white
@@ -89,14 +94,24 @@ def main_menu():
             os.system("clear||cls")
 
         elif choice == '4':
-
+            if (data is not None and not data.empty):
+                micro = data
+                # Rest of the code for option 4 would go here
+                print(p_colour(">> DATA LOADED SUCCESSFULLY.", '32'))
+            else:
+                print(p_colour(">> [ERROR] NO DATA AVAILABLE.", '31'))
+                print(p_colour(">> Please run simulation first. (Option 2)", '31'))
+            
+            input("\nPress Enter to return to menu...")
+            os.system("clear||cls")
 
         elif choice.upper() == 'X':
             print(p_colour(">> SHUTTING DOWN SYSTEM...", '31'))
             time.sleep(1)
             sys.exit(0)
         else:
-            print(">> Invalid Command.")
+            os.system("clear||cls")
+            print(p_colour(">> INVALID COMMAND.", '31'))
 
 if __name__ == '__main__':
     print(p_colour(">> INITIALIZING MODULES...", '33'))

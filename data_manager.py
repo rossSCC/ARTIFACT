@@ -103,6 +103,20 @@ def display_microbit_summary(df):
     else:
         print(f"Total Time Recorded: {time_range:.2f} minutes")
     print("\n\n" + "="*40 + "\n")
+
+
+def classify_risk(r):
+    if r >= 80:
+        return "Extreme"
+    elif r >= 60:
+        return "High"
+    elif r >= 40:
+        return "Moderate"
+    elif r >= 20:
+        return "Low"
+    else:
+        return "Minimal"
+
     
 
 def load_test():
