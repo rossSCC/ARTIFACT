@@ -9,17 +9,32 @@ Additional helper functions for reporting are kept minimal.
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import random
+
+def p_colour(text, code):
+    return f"\033[{code}m{text}\033[0m"
 
 
-def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=0, light_shaping=0, rain_shaping=0):
+def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=1.0, light_shaping=1.0, rain_shaping=1.0):
     """Return micro_df with a new 'Risk_Score' column and the recent rain sum."""
 
     # ---- Safety: Handle empty microbit data ----
     if micro_df is None or micro_df.empty:
         return micro_df, 0.0
-
     micro = micro_df.copy().reset_index(drop=True)
+    
+    # ---- Apply input shaping directly to dataframe ----
+    micro['Temp'] = micro['Temp'] * temp_shaping
+    micro['Light'] = micro['Light'] * light_shaping
+
+    if (
+        weather_df is not None
+        and not weather_df.empty
+        and 'rain' in weather_df.columns
+    ):
+        weather_df = weather_df.copy().reset_index(drop=True)
+        weather_df['rain'] = pd.to_numeric(weather_df['rain'], errors='coerce').fillna(0)
+        weather_df['rain'] = weather_df['rain'] * rain_shaping
+
 
     if 'Temp' not in micro.columns or 'Light' not in micro.columns:
         raise ValueError(
@@ -36,10 +51,11 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
     # ---- Rolling recent rain (last 5 overall rows) ----
     recent_rain = 0.0
     if weather is not None:
-        recent_rain = float(weather.tail(5)['rain'].sum()) + rain_shaping
+        recent_rain = float(weather.tail(len(micro))['rain'].sum()) * rain_shaping
 
     # ---- Compute rolling rain modifier per row ----
     risk_scores = []
+    offset = len(weather) - len(micro)
 
     for i in range(len(micro)):
 
@@ -49,12 +65,18 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
 
             # Use 5 previous readings relative to index
             start_idx = max(0, i - 4)
+            start_idx += offset
+            
             end_idx = min(i + 1, len(weather))
+            end_idx += offset
+            
 
             recent_weather = weather.iloc[start_idx:end_idx]
+            
 
             dry_days = (recent_weather['rain'] < 0.1).sum()
             avg_rain = recent_weather['rain'].mean()
+            
 
             # Dry spell increase
             if dry_days >= 5:
@@ -74,7 +96,7 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
 
         # ---- Base risk ----
         try:
-            base = (float(micro.at[i, 'Temp'] + temp_shaping) * 2.0) + (67 * ((float(micro.at[i, 'Light'] + light_shaping) / 230)**3))
+            base = float(micro.at[i, 'Temp'] * 2.0) + (67 * ((float(micro.at[i, 'Light']) / 230)**3))
         except (TypeError, ValueError):
             base = 0.0
 
@@ -112,83 +134,104 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
     return micro, recent_rain"""
 
 
-def plot_analysis(df: pd.DataFrame, rain_amount: float):
+def plot_analysis(df: pd.DataFrame, rain_amount: float, title, file_name, text=""):
 
     plt.style.use('dark_background')
     fig, ax1 = plt.subplots(figsize=(10, 5))
-    ax1.plot(df['Time'], df['Risk_Score'], linewidth=2, label='Risk Score')
+    ax1.plot(df['Time'], df['Risk_Score'], linewidth=2, label='Risk Score', color='crimson')
     ax1.set_xlabel('Time (s)')
     ax1.set_ylabel('Risk Index (0-100)')
-    ax1.set_ylim(0, 100)
-    ax1.fill_between(df['Time'], df['Risk_Score'], alpha=0.12)
+    ax1.set_ylim(0, 101)
+    ax1.fill_between(df['Time'], df['Risk_Score'], alpha=0.07, color="crimson")
 
     ax2 = ax1.twinx()
-    ax2.plot(df['Time'], df['Temp'], linestyle='--', alpha=0.7, label='Temp')
+    ax2.plot(df['Time'], df['Temp'], linestyle='--', alpha=0.7, label='Temp', color="cornflowerblue")
     ax2.set_ylabel('Temp (°C)')
 
-    ax1.axhline(70, linestyle=':', label='Critical Threshold')
+    ax3 = ax1.twinx()
+    ax3.spines["right"].set_position(("outward", 60))
+    ax3.plot(df['Time'], df['Light'], linestyle='-.', alpha=0.7, label='Light', color="yellow")
+    ax3.set_ylabel('Light Level')
+    ax3.set_ylim(0, 230)
+
+
+    avg_risk = df['Risk_Score'].mean()
+    ax1.axhline(avg_risk, linestyle=':', label='Avgerage Risk', color="darkred")
+
+    txt = f"""
+    Recent Rainfall: {rain_amount} mm.
+    Avgerage Risk: {avg_risk:.2f}%.
+    Avgerage Temp: {df['Temp'].mean():.2f}°C.
+    Avg Light Level: {df['Light'].mean():.2f}. {text}
+    """
+    plt.text(.1,.1,txt)
+    
+    if not title:
+        title = "Forest Fire Risk Analysis"
     plt.title(
-        f"Forest Sentinel: Risk Analysis (Recent rain: {rain_amount} mm)")
+        f"{title} (Recent rain: {rain_amount:.2f} mm)")
     fig.tight_layout()
-    plt.legend()
+    
+    # Collect legend items from both axes
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    lines3, labels3 = ax3.get_legend_handles_labels()
+
+
+    ax1.legend(lines1 + lines2 + lines3, labels1 + labels2 + labels3, loc='upper right')
+
 
     try:
         plt.show()
     finally:
+        if not file_name:
+            file_name = "risk_analysis.png"
         print("Display not supported – saving graph as image instead.")
-        plt.savefig("risk_analysis.png", dpi=150)
-        print("Saved as risk_analysis.png")
+        plt.savefig(file_name, dpi=150)
+        print("Saved as ", file_name)
 
 
 def run_what_if(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
 
     #
-    df, rain = analyse_risk(micro_df, weather_df)
     
     print("\n\n" + "="*40)
     print(p_colour("       POSSIBLE SCENARIOS", '1;37'))  # bold white
     print("="*40)
-    print(p_colour("[1]", '36'), "Heatwave Impact")
-    print(p_colour("[2]", '36'), "Drought Impact")
+    print(p_colour("[1]", '36'), "Variable Heatwave Impact")
+    print(p_colour("[2]", '36'), "Prolonged Rain Impact")
     choice = input(p_colour("\n>> ENTER OPTION: ", '33;'))  # yellow
     
     if choice == '1':
-        
-    df['Risk_Heatwave'] = ((df['Temp'] + random.randint(5,12)) * 2.0) + (df['Light'] / 4.0)
-    df['Risk_Heatwave'] = df['Risk_Heatwave'].clip(0, 100)
-    plt.figure(figsize=(10, 5))
-    plt.plot(df['Time'], df['Risk_Score'], label='Current')
-    plt.plot(df['Time'],
-             df['Risk_Heatwave'],
-             linestyle='--',
-             label='+5°C Heatwave')
-    plt.title('What-If: Heatwave Impact')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Risk')
-    plt.legend()
+        severity = input(p_colour(">> ENTER HEATWAVE SEVERITY (1-3): ", '33'))
+        print("\n" + "="*40 + "\n")
 
-    try:
-        plt.show()
-    finally:
-        print("Display not supported – saving graph as image instead.")
-        plt.savefig("risk_whatif.png", dpi=150)
-        print("Saved as risk_analysis.png")
+        if severity == '1':
+            df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.1, light_shaping=1.2, rain_shaping=0.5)
+            print(p_colour(">> Mild Heatwave Scenario", '32'))
+            print("Temperature increase: 10%\n Light increase: 20%\n  Rain reduction: 50%\n")
+            text = "T +10%, L +20%, R -50%"
+        elif severity == '2':
+            df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.2, light_shaping=1.3, rain_shaping=0.3)
+            print(p_colour(">> Moderate Heatwave Scenario", '32'))
+            print("Temperature increase: 20%\n Light increase: 30%\n  Rain reduction: 70%\n")
+            text = "T +20%, L +30%, R -70%"
+        elif severity == '3':
+            df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.3, light_shaping=1.5, rain_shaping=0.1)
+            print(p_colour(">> Extreme Heatwave Scenario", '32'))
+            print("Temperature increase: 30%\n Light increase: 50%\n  Rain reduction: 90%\n")
+            text = "T +30%, L +50%, R -90%"
+        else:
+            print(">> Invalid severity.")
+        plot_analysis(df, rain, "Heatwave Scenario", f"heatwave_s{severity}.png", text)
 
+    elif choice == '2':
+        print("\n" + "="*40 + "\n")
+        df, rain = analyse_risk(micro_df, weather_df, temp_shaping=0.65, light_shaping=0.32, rain_shaping=1.84)
+        print(p_colour(">> PROLONGED RAIN SCENARIO\n", '32'))
+        print("Temperature reduction: 45%\n Light reduction: 68%\n  Rain increase: 84%\n")
+        plot_analysis(df, rain, "Prolonged Rain Scenario", "prolonged_rain.png", "\nT -45%, L -68%, R +84%")
 
-# Minimal placeholders for the reporting path used by main.py
-def calculate_fire_risk_weather(weather_df: pd.DataFrame):
-    # For report purposes, compute a simple daily risk column in the weather df
-    df = weather_df.copy()
-    if 'rain' in df.columns:
-        df['daily_risk'] = (
-            df['rain'].apply(lambda r: 0 if r > 1 else 50)).astype(float)
-    else:
-        df['daily_risk'] = 50.0
-    return df
-
-
-def generate_report(df: pd.DataFrame, out_file='daily_report.csv'):
-    # Save a short CSV summary to disk
-    summary = df.head(10).copy()
-    summary.to_csv(out_file, index=False)
-    print(f"Report saved to {out_file}")
+def load_test():
+    return(p_colour(f">> SIMULATION MODULE CONNECTED...", '36'))
+    

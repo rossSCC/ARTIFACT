@@ -103,3 +103,7 @@ def display_microbit_summary(df):
     else:
         print(f"Total Time Recorded: {time_range:.2f} minutes")
     print("\n\n" + "="*40 + "\n")
+    
+
+def load_test():
+    return(p_colour(f">> DATA MANAGER MODULE CONNECTED...", '36'))
