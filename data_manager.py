@@ -1,7 +1,31 @@
 """
-Simplified data_manager module.
-Replaces external 'requests' and 'termcolor' with standard-library code where possible.
-Keeps the same CSV parsing behavior (skip 10 header rows for weather CSV).
+============================================================
+DATA PROCESSING MODULE
+============================================================
+
+Outline:
+This module is responsible for loading, validating, 
+and preparing environmental data for analysis.
+
+Design Considerations:
+- Both datasets may be empty due to device failure 
+  or API errors.
+- The most recent reading is assumed to be stored 
+  in the last row of each dataset.
+- Data validation to catch missing data points
+  
+THIS FILE CONTAINS:
+- Reading micro:bit csv data from file
+- Requesting rainfall data from API
+- Clean and validate datasets
+- Handle missing or empty data safely
+- Extract most recent readings in the case of historical API data
+- Calculate statistical analysis data
+
+This module does NOT calculate risk directly —
+it prepares data for the risk algorithm.
+
+============================================================
 """
 
 import pandas as pd

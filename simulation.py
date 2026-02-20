@@ -1,10 +1,26 @@
 """
-Simplified simulation module.
-Keeps core functionality:
- - analyze_hybrid_risk: produce Risk_Score based on Temp, Light and recent rain
- - plot_analysis: show a matplotlib figure
- - run_what_if: create a heatwave scenario plot
-Additional helper functions for reporting are kept minimal.
+============================================================
+SIMULATION MODULE
+============================================================
+
+Outline:
+This module applies an algorithm to calculate
+an environmental risk score based on:
+
+- Temperature (micro:bit)
+- Light intensity (micro:bit)
+- Rainfall (weather API)
+
+Algorithm Design:
+Each variable contributes to the final risk score
+using assigned weightings.
+
+THIS FILE CONTAINS:
+- Risk calculation algorithm (analyse_risk)
+- Graphical display of results (plot_analysis)
+- What-if scenario testing (run_what_if)
+
+============================================================
 """
 
 import pandas as pd
@@ -109,29 +125,6 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
 
     return micro, recent_rain
 
-
-"""
-    
-    if weather_df is not None and not weather_df.empty and 'rain' in weather_df.columns:
-        recent_rain = float(weather_df.tail(30)['rain'].sum())
-
-    # Determine modifier
-    if recent_rain > 5.0:
-        rain_mod = -40.0
-    elif recent_rain > 0.5:
-        rain_mod = -20.0
-    else:
-        rain_mod = 0.0
-
-    # Compute risk for each row
-    def compute_row_risk(temp, light):
-        base = (float(temp) * 2.0) + (float(light) / 4.0)
-        final = base + rain_mod
-        return max(0.0, min(100.0, final))
-
-    micro = micro_df.copy()
-    micro['Risk_Score'] = micro.apply(lambda r: compute_row_risk(r.get('Temp', 0), r.get('Light', 0)), axis=1)
-    return micro, recent_rain"""
 
 
 def plot_analysis(df: pd.DataFrame, rain_amount: float, title, file_name, text=""):
