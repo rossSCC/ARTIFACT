@@ -163,7 +163,7 @@ def plot_analysis(df: pd.DataFrame, rain_amount: float, title, file_name, text="
 
     # Add text to the plot
     txt = f"""
-    Recent Rainfall: {rain_amount} mm.
+    Recent Rainfall: {rain_amount:.2f} mm.
     Avgerage Risk: {avg_risk:.2f}%.
     Avgerage Temp: {df['Temp'].mean():.2f}°C.
     Avg Light Level: {df['Light'].mean():.2f}. {text}

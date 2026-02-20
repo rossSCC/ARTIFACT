@@ -76,10 +76,11 @@ def get_weather_data() -> pd.DataFrame:
         print(p_colour(">> [SYSTEM] LOADING LOCAL BACKUP...", '31'))
         if os.path.exists(BACKUP_FILE):
             try:
-                df = pd.read_csv(BACKUP_FILE, skiprows=10, skipinitialspace=True)
+                df = pd.read_csv(BACKUP_FILE, skiprows=9, skipinitialspace=True)
                 df.columns = df.columns.str.strip().str.lower()
                 if 'rain' in df.columns:
                     df['rain'] = pd.to_numeric(df['rain'], errors='coerce').fillna(0)
+                print(p_colour(f">> [SUCCESS] BACKUP LOADED. Last date: {df.iloc[-1]['date']}", '32'))
                 return df
             except Exception as e2:
                 print(p_colour(f">> [ERROR] FAILED TO READ BACKUP: {e2}", '31'))

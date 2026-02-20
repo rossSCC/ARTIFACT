@@ -211,6 +211,32 @@ def main_menu():
             input("\nPress Enter to return to menu...")
             os.system("clear||cls")
 
+
+        
+        # Option 5: Developer / Secret tools
+        elif choice == '5':
+            import tests # this is our test file
+            
+            print("\n\n" + "="*40)
+            print(p_colour("       DEV / TEST TOOLS", '1;37'))
+            print("="*40)
+            print(p_colour("[1]", '36'), "Run Automated Tests")
+            print(p_colour("[2]", '36'), "Generate Risk Formula Plot")
+            dev_choice = input(p_colour("\n>> ENTER OPTION: ", '33'))
+
+            if dev_choice == '1':
+                print("\nRunning automated tests...\n")
+                print("actually no tests yet    ¯\\_(ツ)_/¯")
+            elif dev_choice == '2':
+                print("\nGenerating risk formula plot...\n")
+                tests.plot_risk_formulas()
+            else:
+                print(">> Invalid Command.")
+                
+
+            input("\nPress Enter to return to menu...")
+            os.system("clear||cls")
+
         # Option X: Exit program
         elif choice.upper() == 'X':
             print(p_colour(">> SHUTTING DOWN SYSTEM...", '31'))
