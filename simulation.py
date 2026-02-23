@@ -187,7 +187,7 @@ def plot_analysis(df: pd.DataFrame, rain_amount: float, title, file_name, text="
     # if the graph does not display (a system issue not code related) the user can save it as an image
     plt.show()
     print("Displaying graph...")
-    choice = input(p_colour(">> Would you like to save the graph as an image? (Y/N)", '33'))
+    choice = input(p_colour(">> Would you like to save the graph as an image? (Y/N) ", '33'))
     if choice.upper() == 'Y':
         if not file_name: # If no file name is given, use the default file name
             file_name = "risk_analysis.png"
