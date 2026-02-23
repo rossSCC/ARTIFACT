@@ -1,6 +1,6 @@
 """
 ============================================================
-AUTOMATED TESTS FOR FOREST FIRE PROJECT
+TESTS FOR FOREST FIRE PROJECT
 ============================================================
 
 File: tests.py
