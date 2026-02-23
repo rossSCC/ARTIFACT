@@ -221,17 +221,17 @@ def run_what_if(micro_df: pd.DataFrame, weather_df: pd.DataFrame):
         if severity == '1':
             df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.1, light_shaping=1.2, rain_shaping=0.5)
             print(p_colour(">> Mild Heatwave Scenario", '32'))
-            print("Temperature increase: 10%\n Light increase: 20%\n  Rain reduction: 50%\n")
+            print("Temperature increase: 10%\night increase: 20%\nRain reduction: 50%\n")
             text = "T +10%, L +20%, R -50%"
         elif severity == '2':
             df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.2, light_shaping=1.3, rain_shaping=0.3)
             print(p_colour(">> Moderate Heatwave Scenario", '32'))
-            print("Temperature increase: 20%\n Light increase: 30%\n  Rain reduction: 70%\n")
+            print("Temperature increase: 20%\night increase: 30%\nRain reduction: 70%\n")
             text = "T +20%, L +30%, R -70%"
         elif severity == '3':
             df, rain = analyse_risk(micro_df, weather_df, temp_shaping=1.3, light_shaping=1.5, rain_shaping=0.1)
             print(p_colour(">> Extreme Heatwave Scenario", '32'))
-            print("Temperature increase: 30%\n Light increase: 50%\n  Rain reduction: 90%\n")
+            print("Temperature increase: 30%\nLight increase: 50%\nRain reduction: 90%\n")
             text = "T +30%, L +50%, R -90%"
         else:
             print(">> Invalid severity.")
