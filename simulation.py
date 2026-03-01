@@ -80,7 +80,7 @@ def analyse_risk(micro_df: pd.DataFrame, weather_df: pd.DataFrame, temp_shaping=
             # get the 5 previous readings
             recent_weather = weather.iloc[start_idx:end_idx]
             # get the number of dry days
-            dry_days = (recent_weather['rain'] < 0.1).sum()
+            dry_days = (recent_weather['rain'] < 0.5).sum()
             
             # weighted average rain, more recent = higher weight
             # I did this becasue rain 5 days ago is less relevant than rain yesterday
